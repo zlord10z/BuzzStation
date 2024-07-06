@@ -4,6 +4,7 @@ from changeTextColor import changeStringBgColor, changeStringFontColor
 
 # Lambdas:
 clear = lambda: os.system("clear")
+formatTextAsSelected = lambda text: changeStringBgColor("grey", changeStringFontColor("black", text))
 
 # 64x18 characters:
 gui_height = 17 #terminal command line is taking one line
@@ -90,14 +91,45 @@ class TrackerGUI:
 					tracks += 1
 			return screen_matrix
 	
-	def drawFieldsForNotes(self, screen_matrix):
+	def drawNotes(self, screen_matrix, pattern, selected_note_element):
 		# Three is 8 tracks with length of 16, each note has 5 chars for note value and it's volume, between that note info there is 1 char of free space
 		for i in range(16):
 			x = 2
 			for j in range(8):
-				for k in range(5):
-					if k != 3: screen_matrix[i+1][x+k] = "."
+				note = pattern[j][i]
+				if len(note) > 0 and len(note[0]) < 3:
+					note[0] += " "
+				
+				
+				if selected_note_element is None: selected_note_element = [None, None, None]
+				
+				if len(note) == 0:
+					for k in range(5):
+						if k != 3:
+							if i == selected_note_element[1] and j == selected_note_element[0]:
+								screen_matrix[i+1][x+k] = formatTextAsSelected(".")
+							else:
+								screen_matrix[i+1][x+k] = "."
+
+				else:
+					l = 0
+					for k in range(5):
+						if k != 3: 
+							if k < 3:
+								if selected_note_element[2] == 0 and i == selected_note_element[1] and j == selected_note_element[0]:
+									screen_matrix[i+1][x+k] = formatTextAsSelected(note[0][l])
+								else:
+									screen_matrix[i+1][x+k] = note[0][l]
+								l += 1
+							
+							else:
+								if selected_note_element[2] == 1 and i == selected_note_element[1] and j == selected_note_element[0]:
+									screen_matrix[i+1][x+k] = formatTextAsSelected(note[1])
+								else:
+									screen_matrix[i+1][x+k] = note[1]
+				
 				x += 6
+				
 		return screen_matrix
 	
 	def drawSongName(self, screen_matrix, song_name = None):
@@ -160,7 +192,7 @@ class TrackerGUI:
 					value_to_print = value_to_print[1:]
 		return screen_matrix
 	
-	def drawMenu(self, screen_matrix):
+	def drawMenu(self, screen_matrix, selected = None):
 		# x is char on x axis, where the tracks ends, and the song info starts:
 		x = 2 + 6*8
 		info_text = "    Menu: "
@@ -168,23 +200,51 @@ class TrackerGUI:
 		for i in range(gui_width - x):
 			if i <= len(info_text)-1:
 				screen_matrix[5][x + i] = changeStringBgColor("blue", info_text[i])
-		# playlist button:
-		button_text = " Playlist  "
+		
+		# previous button and next pattern buttons:
+		text = "pattern"
+		for i in range(gui_width - x):
+			if i <= len(text)-1:
+				screen_matrix[6][x + i] = changeStringBgColor("blue", text[i])
+		
+		button_text = "⇽"
 		for i in range(gui_width - x):
 			if i <= len(button_text)-1:
-				screen_matrix[6][x + i + 1] = button_text[i]
+				if selected == 0:
+					screen_matrix[6][x + i + 8] = formatTextAsSelected(button_text[i])
+				else:
+					screen_matrix[6][x + i + 8] = button_text[i]
 		
 	
-		button_text = " New "
+		button_text = "⇾"
 		for i in range(gui_width - x):
 			if i <= len(button_text)-1:
-				screen_matrix[7][x + i + 4] = button_text[i]
-		
-
+				if selected == 1:
+					screen_matrix[6][x + i + 11] = formatTextAsSelected(button_text[i])
+				else:
+					screen_matrix[6][x + i + 11] = button_text[i]
+					
+		# playlist button:
+		button_text = " Playlist "
+		for i in range(gui_width - x):
+			if i <= len(button_text) - 1:
+				if selected == 2:
+					screen_matrix[7][x + i + 1] = formatTextAsSelected(button_text[i])
+				else:
+					screen_matrix[7][x + i + 1] = button_text[i]
+				
+		# clone pattern:
 		button_text = " Clone "
 		for i in range(gui_width - x):
 			if i <= len(button_text)-1:
-				screen_matrix[8][x + i + 3] = button_text[i]
+				if selected == 3:
+					screen_matrix[8][x + i + 3] = formatTextAsSelected(button_text[i])
+				else: 
+					screen_matrix[8][x + i + 3] = button_text[i]
+		
+
+
+				
 		return screen_matrix
 	
 	def drawIsPlaying(self, screen_matrix, is_playing = False):
@@ -211,23 +271,51 @@ class TrackerGUI:
 	
 
 
-	def createAndPrint(self, list_of_samples):
+	def createAndPrint(self, list_of_samples, pattern, selected_button = None, selected_note_element = None):
 		#clear()
 		screen_matrix = self.createScreenMatrix()
 		sceeen_matrix = self.fillMatrix(screen_matrix)
 		screen_matrix = self.drawNumbersAndFrames(1, screen_matrix)
 		screen_matrix = self.markTrackWithSampleName(list_of_samples, screen_matrix)
 		screen_matrix = self.drawPatternNumber(screen_matrix)
-		screen_matrix = self.drawFieldsForNotes(screen_matrix)
+		screen_matrix = self.drawNotes(screen_matrix, pattern, selected_note_element)
 		screen_matrix = self.drawSwingBPMnMasterVolumeValue(screen_matrix)
-		screen_matrix = self.drawMenu(screen_matrix)
+		screen_matrix = self.drawMenu(screen_matrix, selected_button)
 		screen_matrix = self.drawIsPlaying(screen_matrix)
 		self.printScreenMatrix(screen_matrix)
 
+# for testing purpose:
+def createExamplePattern():
+	example_pattern = []
+	
+	# append 16 tracks:
+	for i in range(16):
+		track = []
+		example_pattern.append(track)
+	
+	# append 16 notes in 16 tracks:
+	for i in range(16):
+		for j in range(16):
+			note = []
+			example_pattern[i].append(note)
+	
+	# append kick 4x4 with full volume - hex F
+	for i in range(16):
+		if i % 4 == 0:
+			example_pattern[0][i] = ["C5", "F"]
+	
+	# append snare:
+	for i in range(16):
+		if i % 4 == 0 and i > 1 and i != 8:
+			example_pattern[1][i] = ["C5", "9"]
+	
+	return example_pattern
 
+
+example_pattern = createExamplePattern()
 
 t_GUI = TrackerGUI()
-t_GUI.createAndPrint(["folder/kick_deep_132.mp3"])
+t_GUI.createAndPrint(["folder/kick_deep_132.mp3"], example_pattern, None, [1, 1, 1])
 
 try:
 	while True: pass
