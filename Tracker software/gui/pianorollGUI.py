@@ -65,7 +65,6 @@ def drawPartOfPiano(screen_matrix, y_position, x_poistion, octave, start_note = 
 		
 		counter += 1
 		
-		print(note)
 		for j in range(4):
 			# draw first 4 chars which makes piano key:
 			if len(notes[note_index]) > 1:
@@ -159,6 +158,7 @@ def drawButtons(screen_matrix, selected = None):
 			screen_matrix[gui_height-2][15 + i] = toDraw[i]
 	return screen_matrix
 
+
 def drawNotesOnPianoRoll(screen_matrix, pattern = None):	
 	x_position = 9
 	y_position = 13
@@ -169,13 +169,25 @@ def drawNotesOnPianoRoll(screen_matrix, pattern = None):
 			for j in range(len(pattern[i])):
 				if pattern[i][j][0] in notes_displayed:
 					y = y_position -  notes_displayed.index(pattern[i][j][0]) 
-					
 					# quarter note displayed as 3 character square:
-					for k in range(pattern[i][j][1] * 3):
+					for k in range(pattern[i][j][1] * 3 - 1):
 						screen_matrix[y][x_position + i + k] = changeStringBgColor("white", " ")
-			x_position += 3
+
+			x_position += 2
 	return screen_matrix
-		
+
+def drawCursor(screen_matrix, cursor, position):
+	x_position = 9
+	y_position = 13
+	
+	octave = cursor[-1:]
+	note = cursor.replace(octave, "")
+	print(notes_displayed)
+	y = y_position - notes_displayed.index(cursor)
+	x = x_position + position * 2
+	for i in range(2):
+		screen_matrix[y][x+i] = changeStringBgColor("grey", " ")
+	return screen_matrix
 	
 		
 def printGUI(screen_matrix):
@@ -185,18 +197,34 @@ def printGUI(screen_matrix):
 			toprint += screen_matrix[i][j]
 	print(toprint)
 
-
-def main(pattern=None):
+	
+def getStartingNoteAndOctave(selected_note):
+	octave = int(selected_note[-1:])
+	note = selected_note
+	note = note.replace(str(octave), "")
+	if octave == 5 or selected_note == "C6":
+		octave = 5
+		start_note = 0
+	else:
+		start_note = notes.index(note)
+		
+	return start_note, octave
+		
+def main(selected_note, selecteded_beat, pattern=None, selected_menu_button = None):
+	start_note, octave = getStartingNoteAndOctave(selected_note)
+	
 	screen_matrix = createScreenMatrix()
 	screen_matrix = drawFrame(screen_matrix)
 	screen_matrix = drawVerticalLinesForBetterVisibility(screen_matrix)
-	screen_matrix = drawPiano(screen_matrix, octave = 5, start_note = 1)
+	screen_matrix = drawPiano(screen_matrix, octave, start_note)
 	screen_matrix = drawQuarterTime(screen_matrix)
 	screen_matrix = drawPatternNumber(screen_matrix, pattern_number = 1)
 	screen_matrix = drawSwingBPMValueAndMidiChannelNumber(screen_matrix, bpm_value = 100, swing_value = 40, channel_number = 1)
 	screen_matrix = drawIsPlaying(screen_matrix, True)
-	screen_matrix = drawButtons(screen_matrix, selected = None)
-	screen_matrix = drawNotesOnPianoRoll(screen_matrix, pattern=None)
+	screen_matrix = drawButtons(screen_matrix, selected_menu_button)
+	screen_matrix = drawNotesOnPianoRoll(screen_matrix, pattern = pattern)
+	if selected_menu_button is None:
+		screen_matrix = drawCursor(screen_matrix, selected_note, selecteded_beat)
 	printGUI(screen_matrix)
 
 
@@ -210,12 +238,13 @@ def createExamplePattern():
 	pattern[0].append(["C#5", 1])
 	pattern[0].append(["D#5", 1])
 	pattern[0].append(["C#7", 1])
+	pattern[1].append(["C#5", 1])
 	pattern[4].append(["C#5", 3])
 	return pattern
 	
 if __name__ == "__main__":
 	example_pattern = createExamplePattern()
-	#print(example_pattern)
-	#main(pattern = example_pattern)
-	main()
+	print(example_pattern)
+	main(pattern = example_pattern, selected_note = "C7", selecteded_beat = 0, menu = True)
+	#main()
 
