@@ -67,7 +67,7 @@ def drawNumbersAndFrames(first_number, screen_matrix):
 	return screen_matrix
 
 
-def markTrackWithSampleName(list_of_samples, screen_matrix):
+def markTrackWithSampleName(list_of_samples, screen_matrix, selected = None):
 		# Samples are stored as path to file
 		# Extracting names and abbreviate to first 4 letters with ellipsis on the end:
 		for i in range(len(list_of_samples)):
@@ -89,11 +89,14 @@ def markTrackWithSampleName(list_of_samples, screen_matrix):
 		for i in range(len(screen_matrix[0])):
 			if(i % 6 == 2 and tracks <= 8):
 				for j in range(5):
-					screen_matrix[0][i+j] = changeStringBgColor("blue", list_of_samples[tracks-1][j])
+					if tracks-1 == selected:
+						screen_matrix[0][i+j] = changeStringBgColor("grey", list_of_samples[tracks-1][j])
+					else:
+						screen_matrix[0][i+j] = changeStringBgColor("blue", list_of_samples[tracks-1][j])
 				tracks += 1
 		return screen_matrix
 
-def drawNotes(screen_matrix, pattern, selected_note_element):
+def drawNotes(screen_matrix, pattern, selected_note_element = None):
 	# Three is 8 tracks with length of 16, each note has 5 chars for note value and it's volume, between that note info there is 1 char of free space
 	for i in range(16):
 		x = 2
@@ -294,9 +297,9 @@ def main(list_of_samples, pattern, selected_button = None, selected_note_element
 	screen_matrix = createScreenMatrix()
 	sceeen_matrix = fillMatrix(screen_matrix)
 	screen_matrix = drawNumbersAndFrames(1, screen_matrix)
-	screen_matrix = markTrackWithSampleName(list_of_samples, screen_matrix)
+	screen_matrix = markTrackWithSampleName(list_of_samples, screen_matrix, selected = 1)
 	screen_matrix = drawPatternNumber(screen_matrix)
-	screen_matrix = drawNotes(screen_matrix, pattern, selected_note_element)
+	screen_matrix = drawNotes(screen_matrix, pattern)
 	screen_matrix = createVerticalGreyLines(screen_matrix)
 	screen_matrix = drawSwingBPMnMasterVolumeValue(screen_matrix)
 	screen_matrix = drawMenu(screen_matrix, selected_button)
