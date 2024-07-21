@@ -76,7 +76,8 @@ def markTrackWithSampleName(list_of_samples, screen_matrix):
 			sample_name = sample_path[-1]
 			sample_name = sample_name.split(".")
 			sample_name = sample_name[0]
-			sample_name = sample_name[:4] + "…"
+			if len(sample_name) > 5: 
+				sample_name = sample_name[:4] + "…"
 			list_of_samples[i] = sample_name
 
 		if(len(list_of_samples) < 8):
@@ -332,3 +333,4 @@ def createExamplePattern():
 if __name__ == "__main__":
 	example_pattern = createExamplePattern()
 	main(["folder/kick_deep_132.mp3"], example_pattern, None, [1, 1, 1])
+
